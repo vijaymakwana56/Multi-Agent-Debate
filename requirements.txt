@@ -1,0 +1,17 @@
+# LangGraph framework
+langgraph
+
+# Recommended for LLM integration (official LangGraph guidance)
+langchain
+
+# For graph visualization (DAG generation)
+graphviz
+
+# Environment variable loading (optional)
+python-dotenv
+
+# LLM support (optional)
+
+# Misc essentials
+typing_extensions
+requests
