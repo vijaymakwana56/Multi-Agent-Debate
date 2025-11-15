@@ -15,3 +15,5 @@ python-dotenv
 # Misc essentials
 typing_extensions
 requests
+
+groq
