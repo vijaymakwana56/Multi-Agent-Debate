@@ -85,7 +85,7 @@ def memory_node(state: dict)-> dict:
                 print("repetation")
             stored.append(e)
     
-    state_update = {"transcript_store": stored}
+    state_update = {"transcript_store": stored, "transcript": []}
     return state_update
 
 def judge_node(state:dict)->dict:
