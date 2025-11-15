@@ -19,7 +19,7 @@ def main():
     
     #extract the judge_summary and transcript_store from the results
     judge_summary = results.get("judge_summary","")
-    transcipt = results.get("transcipt_store",[])
+    transcipt = results.get("transcript_store",[])
     logger.info("=== Final Judge Summary ===")
     logger.info(judge_summary)
     logger.info("=== Full Transcript ===")

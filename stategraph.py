@@ -14,8 +14,8 @@ from langgraph_nodes import (
 class DebateState(TypedDict):
     topic: str
     round: int
-    transcipt: Annotated[list,add_messages]
-    transcipt_store: list
+    transcript: list
+    transcript_store: list
     per_agent_summary: dict
     last_agent: str
     judge_summary: str
