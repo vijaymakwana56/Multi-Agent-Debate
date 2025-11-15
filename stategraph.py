@@ -1,5 +1,5 @@
 from langgraph.graph import START, END, StateGraph
-from langgraph.graph import Runnable
+from langchain_core.runnables import Runnable
 from langgraph.graph.message import add_messages
 from typing_extensions import TypedDict, Annotated
 from langgraph_nodes import (
@@ -25,11 +25,11 @@ def build_debate_graph()-> Runnable:
     builder = StateGraph(DebateState)
 
     #register the nodes difined in langggraph_nodes
-    builder.add_node(user_input_node, name="UserInput")
-    builder.add_node(agentA_node, name="agentA")
-    builder.add_node(memory_node, name="Memory")
-    builder.add_node(agentB_node, name="agentB")
-    builder.add_node(judge_node, name="Judge")
+    builder.add_node("UserInput", user_input_node,)
+    builder.add_node("agentA", agentA_node,)
+    builder.add_node("Memory", memory_node,)
+    builder.add_node("agentB", agentB_node)
+    builder.add_node("Judge", judge_node,)
 
     # Graph edges (START -> UserInput -> AgentA -> Memory -> AgentB -> Memory -> ... -> Judge -> END)
     #connect the nodes with the edges
@@ -62,6 +62,15 @@ def build_debate_graph()-> Runnable:
     )
 
     builder.add_edge("Judge",END)
+
+    #Debugging the dangling node
+    '''print("\n=== DEBUG: Printing Graph State ===")
+    print("Registered Nodes:", list(builder.nodes.keys()))
+    print("Edges:")
+    for src, dst in builder.edges:
+        print(f"  {src} -> {dst}")
+    print("===================================\n")'''
+
 
     #compile this to a runnable
     graph = builder.compile()
