@@ -1,5 +1,6 @@
 from langgraph.graph import START, END, StateGraph
 from langchain_core.runnables import Runnable
+from langchain_core.runnables.graph import MermaidDrawMethod
 from langgraph.graph.message import add_messages
 from typing_extensions import TypedDict, Annotated
 from langgraph_nodes import (
@@ -74,4 +75,12 @@ def build_debate_graph()-> Runnable:
 
     #compile this to a runnable
     graph = builder.compile()
+
+    # ----- Graphviz DAG Export -----
+    dag = graph.get_graph().draw_mermaid_png()  # DOT source string
+
+    with open("debate_graph.png", "wb") as f:
+        f.write(dag)
+
+    print("\n[GraphViz] DAG saved to debate_graph.png\n")
     return graph
