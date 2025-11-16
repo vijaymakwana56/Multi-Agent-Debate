@@ -54,9 +54,9 @@ The project also generates a **complete debate transcript**, **agent summaries**
 debate-system/
 │
 ├── debate_runner.py          # Main entry point
-├── stategraph.py             # LangGraph state machine (DAG)
+├── stategraph.py             # LangGraph state machine
 ├── langgraph_nodes.py        # All nodes: User, Agents, Memory, Judge
-├── memory.py                 # Transcript store & repetition handling
+├── memory.py                 
 ├── utils.py                  # LLM generation via Groq
 ├── README.md                 # Documentation
 ├── requirements.txt
