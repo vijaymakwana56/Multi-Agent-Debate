@@ -1,8 +1,13 @@
-from utils import llm_generater
+import re
+import json
 
-
-def main():
-    print(llm_generater("Answer in 1-2 lines:  What is AI?"))
-
-if __name__ == "__main__":
-    main()
+def extract_json(text: str):
+    """Extract the first valid JSON object from an LLM response."""
+    match = re.search(r"\{[\s\S]*?\}", text)
+    if not match:
+        return None
+    
+    try:
+        return json.loads(match.group())
+    except:
+        return None

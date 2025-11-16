@@ -1,6 +1,8 @@
 from typing import Any
 import logging
 from utils import llm_generater
+import json
+from helper import extract_json
 
 logger = logging.getLogger("debate")
 
@@ -34,7 +36,7 @@ def agentA_node(state:dict)->dict:
     text = llm_generater(prompt) # llm generation to be added later
     entry = {"round": rnd, "agent": "agentA", "text": text} #add_message will add this
     #logging the output
-    logger.info(f"[AgentA] R{rnd} -> {text}")
+    logger.info(f"[AgentA] R{rnd} -> {text[:20]}...")
 
     #updating the per_agent_summary for the opponent
     state["per_agent_summary"]["agentA"].append(f"R{rnd} agentA: {text}")
@@ -64,7 +66,7 @@ def agentB_node(state:dict)->dict:
     text = llm_generater(prompt) # llm generation to be added later
     entry = {"round": rnd, "agent": "agentB", "text": text} #add_message will add this
     #logging the output
-    logger.info(f"[AgentB] R{rnd} -> {text}")
+    logger.info(f"[AgentB] R{rnd} -> {text[:20]}...")
 
     #updating the per_agent_summary for the opponent
     state["per_agent_summary"]["agentB"].append(f"R{rnd} agentB: {text}")
@@ -100,8 +102,10 @@ def memory_node(state: dict)-> dict:
 def judge_node(state:dict)->dict:
     #called for the final evaluation
     stored = state.get("transcript_store",[])
+    topic = state.get("topic","")
     logger.info(f"[Judge] Received {len(stored)} transcript entries for evaluation")
 
+    #----- 1. HEURISTIC SCORING ------
     #perform heuristic keyword scoring comparision
     keywords = {
         "risk": ["risk","safety","danger","harm"],
@@ -110,24 +114,87 @@ def judge_node(state:dict)->dict:
         "evidence": ["study","data","evidence","research","statistic"],
     }
 
-    scores = {"agentA":0, "agentB":0}
+    heuristic = {"agentA":0, "agentB":0}
     for e in stored:
         t = e['text'].lower()
         for k,words in keywords.items():
             for w in words:
                 if w in t:
-                    scores[e['agent']] += 1
+                    heuristic[e['agent']] += 1
     
+    #----- 2. LLM SCORING (optional) -----
+    debate_text = "\n".join(
+        f"Round {e['round']} - {e['agent']}: {e['text']}"
+        for e in stored
+    )
+    llm_prompt = f"""
+    You are a debate judge.
+
+    Debate Topic: {topic}
+
+    Here is the full transcript:
+    {debate_text}
+
+    Evaluate the arguments for:
+    - Clarity
+    - Logic
+    - Evidence
+    - Rebuttal strength
+    - Originality
+
+    Return STRICT JSON:
+    {{
+      "agentA": <score 0-10>,
+      "agentB": <score 0-10>,
+      "winner": "agentA" | "agentB" | "draw",
+      "justification": "<1-2 sentence justification>"
+    }}
+    """
+    try:
+        llm_result_raw = llm_generater(llm_prompt)
+        llm_result = extract_json(llm_result_raw)
+    except Exception as e:
+        print(f"Error: {e}")
+        llm_result = {
+            "agentA": 0,
+            "agentB": 0,
+            "winner": "draw",
+            "justification": "LLM scoring unavailable. Using heuristic only."
+        }
+    
+    #----- 3. COMBINE SCORES -----
+    alpha = 0.4   # 40% heuristic, 60% LLM — adjustable
+    final_scores = {
+        "agentA": (heuristic["agentA"] * alpha) + (llm_result["agentA"] * (1-alpha)),
+        "agentB": (heuristic["agentB"] * alpha) + (llm_result["agentB"] * (1-alpha)),
+    }
+
     #pick the winner
-    if scores["agentA"] > scores["agentB"]:
+    if final_scores["agentA"] > final_scores["agentB"]:
         winner = "agentA"
-    elif scores["agentA"] < scores["agentB"]:
+    elif final_scores["agentA"] < final_scores["agentB"]:
         winner = "agentB"
     else:
         winner = "Draw"
     
-    summary = f"Scores: {scores}, Winner: {winner}"
-    logger.info(f"[Judge] {summary}")
+    #Printing the results on console
+    print("Results of the Debate:")
+    print(f"Scores: {final_scores}")
+    print(f"Winner: {winner}")
+    print(f"Justification: {llm_result.get('justification', 'No justification produced.')}")
+
+    #----- 4. BUILD THE STRICT SUMMARY -----
+    summary = {
+        "topic": topic,
+        "heuristic_scores": heuristic,
+        "llm_scores": {"agentA": llm_result.get("agentA"), "agentB": llm_result.get("agentB")},
+        "final_scores": final_scores,
+        "winner": winner,
+        "justification": llm_result.get("justification", "No justification produced."),
+        "full_transcript": stored,
+    }
+    
+    # logger.info(f"[Judge] {summary}")
     return {"judge_summary": summary}
 
 
