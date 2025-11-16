@@ -26,13 +26,15 @@ def agentA_node(state:dict)->dict:
         return {}
     
     prompt = (
-        f"You are a Scientist. Topic: {state['topic']}. Round {rnd}.\n"
+        f"You are a Scientist. Debate for the Topic: {state['topic']}. Round {rnd}.\n"
         f"Visible memory (agentA): {state['per_agent_summary'].get('agentA')}\n"
         "Produce a concise argument (1-2 sentences)."
     )
 
     text = llm_generater(prompt) # llm generation to be added later
     entry = {"round": rnd, "agent": "agentA", "text": text} #add_message will add this
+    #logging the output
+    logger.info(f"[AgentA] R{rnd} -> {text}")
 
     #updating the per_agent_summary for the opponent
     state["per_agent_summary"]["agentA"].append(f"R{rnd} agentA: {text}")
@@ -54,13 +56,15 @@ def agentB_node(state:dict)->dict:
         return {}
     
     prompt = (
-        f"You are a Philosopher. Topic: {state['topic']}. Round {rnd}.\n"
+        f"You are a Philosopher. Debate against the Topic: {state['topic']}. Round {rnd}.\n"
         f"Visible memory (agentB): {state['per_agent_summary'].get('agentB')}\n"
         "Produce a concise argument (1-2 sentences)."
     )
 
     text = llm_generater(prompt) # llm generation to be added later
     entry = {"round": rnd, "agent": "agentB", "text": text} #add_message will add this
+    #logging the output
+    logger.info(f"[AgentB] R{rnd} -> {text}")
 
     #updating the per_agent_summary for the opponent
     state["per_agent_summary"]["agentB"].append(f"R{rnd} agentB: {text}")
@@ -87,6 +91,8 @@ def memory_node(state: dict)-> dict:
                 #repetation detected
                 print("repetation")
             stored.append(e)
+            #logging each memory
+            logger.info(f"[Memory] Appended R{e['round']} {e['agent']}")
     
     state_update = {"transcript_store": stored, "transcript": []}
     return state_update
@@ -94,7 +100,7 @@ def memory_node(state: dict)-> dict:
 def judge_node(state:dict)->dict:
     #called for the final evaluation
     stored = state.get("transcript_store",[])
-
+    logger.info(f"[Judge] Received {len(stored)} transcript entries for evaluation")
 
     #perform heuristic keyword scoring comparision
     keywords = {
@@ -121,6 +127,7 @@ def judge_node(state:dict)->dict:
         winner = "Draw"
     
     summary = f"Scores: {scores}, Winner: {winner}"
+    logger.info(f"[Judge] {summary}")
     return {"judge_summary": summary}
 
 

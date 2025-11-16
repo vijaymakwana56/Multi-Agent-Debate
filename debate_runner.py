@@ -19,11 +19,11 @@ def main():
     
     #extract the judge_summary and transcript_store from the results
     judge_summary = results.get("judge_summary","")
-    transcipt = results.get("transcript_store",[])
+    transcript = results.get("transcript_store",[])
     logger.info("=== Final Judge Summary ===")
     logger.info(judge_summary)
     logger.info("=== Full Transcript ===")
-    for e in transcipt:
+    for e in transcript:
         logger.info(f"[R{e['round']}] {e['agent']}: {e['text']}")
     print("Debate complete. See the logs for full output.")
 

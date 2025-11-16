@@ -21,5 +21,5 @@ def setup_logger():
     ch.setFormatter(logging.Formatter("%(message)s"))
     if not logger.handlers:
         logger.addHandler(fh)
-        logger.addHandler(ch)
+        # logger.addHandler(ch)
     return logger

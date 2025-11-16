@@ -11,7 +11,7 @@ client = Groq(api_key=groq_api_key)
 # HF_MODEL = "mistralai/Mistral-7B-Instruct-v0.2"   # free public model
 # HF_URL = f" https://router.huggingface.co/hf-inference/models/{HF_MODEL}"
 
-def llm_generater(prompt:str, max_tokens:int =200)->str:
+def llm_generater(prompt:str, max_tokens:int =100)->str:
 
     # payload = {
     #     "inputs": prompt,
